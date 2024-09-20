@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"io"
 	"log"
 	"math/big"
 	"net/http"
@@ -45,14 +44,8 @@ func (h *Handler) HandleGetTotalSupply(w http.ResponseWriter, _ *http.Request) {
 	}
 	defer respData.Body.Close()
 
-	body, err := io.ReadAll(respData.Body)
-	if err != nil {
-		httpInternalError(w, "Failed to read body", err)
-		return
-	}
-
 	var externalResponse ExternalResponse
-	if err = json.Unmarshal(body, &externalResponse); err != nil {
+	if err = json.NewDecoder(respData.Body).Decode(&externalResponse); err != nil {
 		httpInternalError(w, "Failed to unmarshal external fetch data json", err)
 		return
 	}
@@ -62,13 +55,10 @@ func (h *Handler) HandleGetTotalSupply(w http.ResponseWriter, _ *http.Request) {
 	}
 	response.Amount.SetString(externalResponse.Supply[0].Amount, 10)
 
-	jsonData, err := json.Marshal(response)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(&response)
 	if err != nil {
 		httpInternalError(w, "Failed to marshal response json", err)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(jsonData))
 }

@@ -6,10 +6,12 @@ import (
 	"math/big"
 	"net/http"
 	"simple-rest-service/config"
+	"time"
 )
 
 type Handler struct {
 	config *config.Config
+	client *http.Client
 }
 
 type ExternalResponse struct {
@@ -26,6 +28,9 @@ type Response struct {
 func NewHandler(c *config.Config) *Handler {
 	h := new(Handler)
 	h.config = c
+	h.client = &http.Client{
+		Timeout: 5 * time.Second,
+	}
 	return h
 }
 
@@ -37,7 +42,7 @@ func httpInternalError(w http.ResponseWriter, logMessage string, err error) {
 
 // HandleGetTotalSupply is an HTTP request handler that fetches the total supply of NGL tokens from an external service, unmarshals the JSON response, and returns the amount in a JSON response.
 func (h *Handler) HandleGetTotalSupply(w http.ResponseWriter, _ *http.Request) {
-	respData, err := http.Get(h.config.URL)
+	respData, err := h.client.Get(h.config.URL)
 	if err != nil {
 		httpInternalError(w, "Failed to fetch data", err)
 		return

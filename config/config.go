@@ -12,6 +12,7 @@ type Config struct {
 	URL  string
 }
 
+// LoadConfig loads the configuration from the .env file and returns a pointer to a Config struct or an error.
 func LoadConfig() (*Config, error) {
 	if err := godotenv.Load(); err != nil {
 		return nil, fmt.Errorf("error when loading config: %w", err)

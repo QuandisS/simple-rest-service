@@ -23,18 +23,21 @@ type Response struct {
 	Amount big.Int `json:"amount"`
 }
 
+// NewHandler creates a new Handler with the given configuration.
 func NewHandler(c *config.Config) *Handler {
 	h := new(Handler)
 	h.config = c
 	return h
 }
 
+// httpInternalError writes an HTTP internal server error to the writer and logs an error message to the standard logger.
 func httpInternalError(w http.ResponseWriter, logMessage string, err error) {
 	http.Error(w, logMessage, http.StatusInternalServerError)
 	log.Println(logMessage, err)
 }
 
-func (h *Handler) GetTotalSuppplyHandler(w http.ResponseWriter, _ *http.Request) {
+// HandleGetTotalSupply is an HTTP request handler that fetches the total supply of NGL tokens from an external service, unmarshals the JSON response, and returns the amount in a JSON response.
+func (h *Handler) HandleGetTotalSupply(w http.ResponseWriter, _ *http.Request) {
 	respData, err := http.Get(h.config.URL)
 	if err != nil {
 		httpInternalError(w, "Failed to fetch data", err)

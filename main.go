@@ -15,7 +15,7 @@ func main() {
 
 	h := handler.NewHandler(config)
 
-	http.HandleFunc("GET /getTotalSupply", h.GetTotalSuppplyHandler)
+	http.HandleFunc("GET /getTotalSupply", h.HandleGetTotalSupply)
 
 	if err = http.ListenAndServe(":"+config.Port, nil); err != nil {
 		log.Fatal("Cannot start server: ", err)

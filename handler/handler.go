@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -40,8 +41,6 @@ func (h *Handler) GetTotalSuppplyHandler(w http.ResponseWriter, _ *http.Request)
 		return
 	}
 
-	log.Println(string(body))
-
 	var response Response
 	if err = json.Unmarshal(body, &response); err != nil {
 		http.Error(w, "Error when unmarshaling json", http.StatusInternalServerError)
@@ -49,16 +48,8 @@ func (h *Handler) GetTotalSuppplyHandler(w http.ResponseWriter, _ *http.Request)
 		return
 	}
 
-	jsonData, err := json.Marshal(response.Supply[0])
-	if err != nil {
-		http.Error(w, "Error when marshaling response json", http.StatusInternalServerError)
-		log.Println("Error when marshaling response json:", err)
-		return
-	}
-
-	log.Println(string(jsonData))
-
+	jsonData := fmt.Sprintf("{\"amount\": %s}", response.Supply[0].Amount)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(jsonData)
+	w.Write([]byte(jsonData))
 }

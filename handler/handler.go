@@ -2,9 +2,9 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
+	"math/big"
 	"net/http"
 	"simple-rest-service/config"
 )
@@ -13,10 +13,14 @@ type Handler struct {
 	config *config.Config
 }
 
-type Response struct {
+type ExternalResponse struct {
 	Supply []struct {
 		Amount string `json:"amount"`
 	} `json:"supply"`
+}
+
+type Response struct {
+	Amount big.Int `json:"amount"`
 }
 
 func NewHandler(c *config.Config) *Handler {
@@ -41,14 +45,25 @@ func (h *Handler) GetTotalSuppplyHandler(w http.ResponseWriter, _ *http.Request)
 		return
 	}
 
-	var response Response
-	if err = json.Unmarshal(body, &response); err != nil {
+	var externalResponse ExternalResponse
+	if err = json.Unmarshal(body, &externalResponse); err != nil {
 		http.Error(w, "Error when unmarshaling json", http.StatusInternalServerError)
 		log.Println("Error when unmarshaling json:", err)
 		return
 	}
 
-	jsonData := fmt.Sprintf("{\"amount\": %s}", response.Supply[0].Amount)
+	response := &Response{
+		Amount: big.Int{},
+	}
+	response.Amount.SetString(externalResponse.Supply[0].Amount, 10)
+
+	jsonData, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, "Error when marshaling json", http.StatusInternalServerError)
+		log.Println("Error when marshaling json:", err)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(jsonData))

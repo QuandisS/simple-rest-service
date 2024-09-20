@@ -17,8 +17,15 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("error when loading config: %w", err)
 	}
 
-	return &Config{
-		Port: os.Getenv("PORT"),
-		URL:  os.Getenv("URL"),
-	}, nil
+	c := &Config{}
+	port, found := os.LookupEnv("PORT")
+	if !found {
+		c.Port = "8080"
+	} else {
+		c.Port = port
+	}
+
+	c.URL = os.Getenv("URL")
+
+	return c, nil
 }

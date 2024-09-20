@@ -29,26 +29,28 @@ func NewHandler(c *config.Config) *Handler {
 	return h
 }
 
+func httpInternalError(w http.ResponseWriter, logMessage string, err error) {
+	http.Error(w, logMessage, http.StatusInternalServerError)
+	log.Println(logMessage, err)
+}
+
 func (h *Handler) GetTotalSuppplyHandler(w http.ResponseWriter, _ *http.Request) {
 	respData, err := http.Get(h.config.URL)
 	if err != nil {
-		http.Error(w, "Failed to fetch data", http.StatusInternalServerError)
-		log.Println("Error when fetching data:", err)
+		httpInternalError(w, "Failed to fetch data", err)
 		return
 	}
 	defer respData.Body.Close()
 
 	body, err := io.ReadAll(respData.Body)
 	if err != nil {
-		http.Error(w, "Error when reading body", http.StatusInternalServerError)
-		log.Println("Error when reading body:", err)
+		httpInternalError(w, "Failed to read body", err)
 		return
 	}
 
 	var externalResponse ExternalResponse
 	if err = json.Unmarshal(body, &externalResponse); err != nil {
-		http.Error(w, "Error when unmarshaling json", http.StatusInternalServerError)
-		log.Println("Error when unmarshaling json:", err)
+		httpInternalError(w, "Failed to unmarshal external fetch data json", err)
 		return
 	}
 
@@ -59,8 +61,7 @@ func (h *Handler) GetTotalSuppplyHandler(w http.ResponseWriter, _ *http.Request)
 
 	jsonData, err := json.Marshal(response)
 	if err != nil {
-		http.Error(w, "Error when marshaling json", http.StatusInternalServerError)
-		log.Println("Error when marshaling json:", err)
+		httpInternalError(w, "Failed to marshal response json", err)
 		return
 	}
 
